@@ -9,7 +9,7 @@ public abstract class GameObject {
     protected double y;
     protected boolean active;
 
-    public GameObject(Image image, double x, double y, boolean active) {
+    public GameObject(Image image, double x, double y) {
         this.image = image;
         this.x = x;
         this.y = y;
