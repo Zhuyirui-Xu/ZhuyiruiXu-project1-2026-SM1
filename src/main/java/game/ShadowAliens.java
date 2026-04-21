@@ -33,7 +33,7 @@ public class ShadowAliens extends AbstractGame {
 
         //Initialize Screens
         battleScreen = new BattleScreen(gameProps);
-        pauseScreen = new PauseScreen(gameProps);
+        pauseScreen = new PauseScreen(gameProps, battleScreen);
         currentScreen = battleScreen;
         //Initialize background color
         String[] backgroundColors = gameProps.getProperty("background.colour").split(",");
