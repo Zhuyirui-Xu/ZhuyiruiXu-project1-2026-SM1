@@ -12,7 +12,7 @@ public class BattleScreen extends Screen {
     private Player player;
     private ArrayList<Enemy> enemies;
     private ArrayList<Projectile> projectiles;
-    //private ArrayList<Explosion> explosions;
+    private ArrayList<Explosion> explosions;
     //battle screen status
     private int score;
     private int wave;
@@ -48,7 +48,7 @@ public class BattleScreen extends Screen {
         //update projectiles states
         updateProjectiles();
         //update explosions states
-
+        updateExplosions();
         //Check collision
         checkCollisions();
         //Remove inactive objects
@@ -89,12 +89,19 @@ public class BattleScreen extends Screen {
     }
 
     private void updateExplosions(){
+        for (Explosion explosion: explosions){
+            explosion.update();
+        }
 
     }
 
     @Override
     public void draw() {
 
+        // draw explosions
+        for (Explosion explosion:explosions){
+            explosion.draw();
+        }
         //draw player
         player.draw();
 
@@ -124,6 +131,7 @@ public class BattleScreen extends Screen {
 
         //initialize empty lists for projectiles and explosions
         projectiles = new ArrayList<>();
+        explosions = new ArrayList<>();
 
     }
 
@@ -137,8 +145,6 @@ public class BattleScreen extends Screen {
         int shootCooldown = Integer.parseInt(gameProps.getProperty("player.shootCooldown"));
         player = new Player(image, x, y, initialLives, speed, shootCooldown);
     }
-
-
 
 
     private void createEnemies() {
@@ -204,6 +210,12 @@ public class BattleScreen extends Screen {
                             projectile.destroy();
                             //score
                             score(1);
+                            //create explosion
+                            Explosion explosion = new Explosion(new Image(gameProps.getProperty("explosion.image")),
+                                    enemy.x,
+                                    enemy.y,
+                                    Integer.parseInt(gameProps.getProperty("explosion.duration")));
+                            explosions.add(explosion);
                         }
                     }
                 }
@@ -227,6 +239,14 @@ public class BattleScreen extends Screen {
         for (int i = 0; i<projectiles.size(); i++) {//consider getter method
             if (!projectiles.get(i).isActive()){
                 projectiles.remove(i);
+                i--;
+            }
+        }
+
+        //remove inactive explosions
+        for (int i = 0; i<explosions.size(); i++) {//consider getter method
+            if (!explosions.get(i).isActive()){
+                explosions.remove(i);
                 i--;
             }
         }

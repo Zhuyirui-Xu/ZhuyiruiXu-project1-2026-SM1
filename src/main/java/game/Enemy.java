@@ -21,7 +21,7 @@ public class Enemy extends GameObject {
         }
         y += speed;
         if(y >= ShadowAliens.screenHeight + image.getHeight()/2) {
-            active = false;
+            destroy();
         }
     }
 

@@ -15,7 +15,7 @@ public class Projectile extends GameObject{
         y -= speed;
 
         if(y < 0 - image.getHeight()/2) {
-            active = false;
+            destroy();
         }
     }
 }
