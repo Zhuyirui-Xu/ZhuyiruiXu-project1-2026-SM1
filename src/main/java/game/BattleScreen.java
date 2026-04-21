@@ -9,7 +9,7 @@ import java.util.Properties;
 public class BattleScreen extends Screen {
 
     private Player player;
-    //private ArrayList<Enemy> enemies;
+    private ArrayList<Enemy> enemies;
     private ArrayList<Projectile> projectiles;
     //private ArrayList<Explosion> explosions;
     //battle screen status
@@ -26,6 +26,12 @@ public class BattleScreen extends Screen {
         //Initialize battle screen objects
         initializeGameObjects();
 
+        //initialize battle screen states
+        score = 0;
+        wave = 1;
+        frameCount = 0;
+
+
         //Initialize HUD
         hud = new HUD(gameProps);
     }
@@ -37,7 +43,7 @@ public class BattleScreen extends Screen {
         updatePlayer(input);
 
         //update enemies states
-
+        updateEnemies();
         //update projectiles states
         updateProjectiles();
         //update explosions states
@@ -50,40 +56,11 @@ public class BattleScreen extends Screen {
 
         //draw battle screen after everything is updated
         draw();
+
+        //Update frameCount
+        frameCount++;
     }
 
-    @Override
-    public void draw() {
-
-        //draw player
-        player.draw();
-
-        //draw projectiles
-        for (Projectile projectile : projectiles) {
-            projectile.draw();
-        }
-
-
-        //draw hud information
-        hud.draw(player.getLives(), score, wave);
-
-    }
-
-    private void initializeGameObjects() {
-        //initialize player
-        Image image = new Image(gameProps.getProperty("player.image"));
-        double x = ShadowAliens.screenWidth/2;
-        double y = Double.parseDouble(gameProps.getProperty("player.posY"));
-        int initialLives = Integer.parseInt(gameProps.getProperty("player.initialLives"));
-        int speed = Integer.parseInt(gameProps.getProperty("player.speed"));
-        int shootCooldown = Integer.parseInt(gameProps.getProperty("player.shootCooldown"));
-        player = new Player(image, x, y, initialLives, speed, shootCooldown);
-        //initialize enemies
-
-        //initialize empty lists for projectiles and explosions
-        projectiles = new ArrayList<>();
-
-    }
 
     private void updatePlayer(Input input) {
         if (player.update(input)) {
@@ -98,20 +75,109 @@ public class BattleScreen extends Screen {
     }
 
     private void updateEnemies() {
+        for (Enemy enemy : enemies) {
+            enemy.update(frameCount);
+        }
 
     }
 
     private void updateProjectiles() {
-       for (Projectile projectile : projectiles) {
-           projectile.update();
-       }
+        for (Projectile projectile : projectiles) {
+            projectile.update();
+        }
     }
 
     private void updateExplosions(){
 
     }
 
+    @Override
+    public void draw() {
+
+        //draw player
+        player.draw();
+
+        //draw enemies
+       for (Enemy enemy: enemies) {
+           enemy.draw();
+       }
+
+        //draw projectiles
+        for (Projectile projectile : projectiles) {
+            projectile.draw();
+        }
+
+
+        //draw hud information
+        hud.draw(player.getLives(), score, wave);
+
+    }
+
+    private void initializeGameObjects() {
+
+        //initialize player
+        createPlayer();
+
+        //initialize enemies
+        createEnemies();
+
+        //initialize empty lists for projectiles and explosions
+        projectiles = new ArrayList<>();
+
+    }
+
+    private void createPlayer(){
+        //initialize player
+        Image image = new Image(gameProps.getProperty("player.image"));
+        double x = ShadowAliens.screenWidth/2;
+        double y = Double.parseDouble(gameProps.getProperty("player.posY"));
+        int initialLives = Integer.parseInt(gameProps.getProperty("player.initialLives"));
+        int speed = Integer.parseInt(gameProps.getProperty("player.speed"));
+        int shootCooldown = Integer.parseInt(gameProps.getProperty("player.shootCooldown"));
+        player = new Player(image, x, y, initialLives, speed, shootCooldown);
+    }
+
+
+
+
+    private void createEnemies() {
+
+        enemies = new ArrayList<>();
+        Image enemyImage = new Image(gameProps.getProperty("enemy.image"));
+
+        String arrivalTimeStr = null;
+        int arrivalTime;
+        int speed;
+        double posX;
+        double posY = 0 - enemyImage.getHeight()/2;;
+
+        int i = 0;
+        while ((arrivalTimeStr = gameProps.getProperty(String.format("enemy.%d.arrivalTime", i))) != null) {
+
+            arrivalTime = Integer.parseInt(arrivalTimeStr);
+            speed = Integer.parseInt(gameProps.getProperty(String.format("enemy.%d.movementSpeed", i)));
+            posX = Double.parseDouble(gameProps.getProperty(String.format("enemy.%d.posX", i)));
+
+            Enemy enemy = new Enemy(enemyImage, posX, posY, arrivalTime, speed);
+            enemies.add(enemy);
+            i++;
+        }
+
+
+
+    }
+
+
     private void removeInactiveObjects() {
+
+        //remove inactive enemies
+        for (int i = 0; i<enemies.size(); i++) {//consider getter method
+            if (!enemies.get(i).active) {
+                enemies.remove(i);
+                i--;
+            }
+        }
+
 
         //remove inactive projectiles
         for (int i = 0; i<projectiles.size(); i++) {//consider getter method
@@ -120,7 +186,7 @@ public class BattleScreen extends Screen {
                 i--;
             }
         }
+
+
     }
-
-
 }
