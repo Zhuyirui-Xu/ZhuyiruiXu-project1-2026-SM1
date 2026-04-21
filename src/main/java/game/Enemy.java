@@ -13,13 +13,13 @@ public class Enemy extends GameObject {
         this.speed = speed;
     }
 
-    public void update(int frameCount){
+    public void update(int frameCount, double timeScale){
 
         //Only update when enemy has arrived
         if(!hasArrived(frameCount)){
             return;
         }
-        y += speed;
+        y += speed * timeScale;
         if(y >= ShadowAliens.screenHeight + image.getHeight()/2) {
             destroy();
         }

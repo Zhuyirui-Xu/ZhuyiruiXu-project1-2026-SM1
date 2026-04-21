@@ -14,8 +14,8 @@ public class Explosion extends GameObject {
         countDown = duration;
     }
 
-    public void update(){
-        countDown--;
+    public void update(double timeScale){
+        countDown -= timeScale;
         if(countDown <= 0){
             destroy();
         }

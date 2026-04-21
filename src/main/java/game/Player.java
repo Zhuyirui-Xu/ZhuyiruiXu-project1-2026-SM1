@@ -22,7 +22,7 @@ public class Player extends GameObject {
         shoot =  false;
     }
 
-        public boolean update(Input input) {
+        public boolean update(Input input,  double timeScale) {
 
             //Shoot flag
             shoot = false;
@@ -34,10 +34,10 @@ public class Player extends GameObject {
             //When both keys are held, no movements
             if (left && !right) {
                 //move left
-                moveLeft();
+                moveLeft(timeScale);
             }else if (!left && right) {
                 //move right
-                moveRight();
+                moveRight(timeScale);
             }
 
             //Update shooting
@@ -54,16 +54,16 @@ public class Player extends GameObject {
 
         }
 
-    private void moveLeft() {
-        x -= speed;
+    private void moveLeft(double timeScale) {
+        x -= speed * timeScale;
 
         //Set boundary
         if (x < 0 + image.getWidth()/2) {
             x = 0 + image.getWidth()/2;
         }
     }
-    private void moveRight() {
-        x += speed;
+    private void moveRight(double timeScale) {
+        x += speed * timeScale;
         //Set boundary
         if (x >= ShadowAliens.screenWidth - image.getWidth()/2) {
             x = ShadowAliens.screenWidth - image.getWidth()/2 - 1;

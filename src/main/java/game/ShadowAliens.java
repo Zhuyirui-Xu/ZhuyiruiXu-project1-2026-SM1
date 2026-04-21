@@ -61,11 +61,35 @@ public class ShadowAliens extends AbstractGame {
         }
         currentScreen.update(input);
 
+        //DEV mode features
+        //R:reset
+        if(input.wasPressed(Keys.R)){
+            resetGame();
+        }
+        //I:invincible
+        if(input.wasPressed(Keys.I)){
+            battleScreen.switchToInvincible();
+        }
+        //G:speed up
+        if(input.wasPressed(Keys.G)){
+            battleScreen.speedUp();
+        }
+
+        //F:speed down
+        if(input.wasPressed(Keys.F)) {
+            battleScreen.speedDown();
+        }
     }
 
     public static void main(String[] args) {
         Properties gameProps = IOUtils.readPropertiesFile(System.getProperty("gameData","gameData.properties"));
         ShadowAliens game = new ShadowAliens(gameProps);
         game.run();
+    }
+
+    private void resetGame(){
+        battleScreen = new BattleScreen(gameProps);
+        pauseScreen = new PauseScreen(gameProps, battleScreen);
+        currentScreen = battleScreen;
     }
 }

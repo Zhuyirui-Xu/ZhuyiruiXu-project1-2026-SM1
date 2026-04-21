@@ -11,8 +11,8 @@ public class Projectile extends GameObject{
         this.speed = speed;
     }
 
-    public void update() {
-        y -= speed;
+    public void update( double timeScale) {
+        y -= speed * timeScale;
 
         if(y < 0 - image.getHeight()/2) {
             destroy();

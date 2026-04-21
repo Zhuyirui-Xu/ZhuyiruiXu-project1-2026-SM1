@@ -18,6 +18,10 @@ public class BattleScreen extends Screen {
     private int wave;
     private int frameCount;
 
+    //status for DEV mode
+    private boolean invincible;
+    private int speedLevel;
+
     //UI settings
     private HUD hud;//delegation
 
@@ -32,6 +36,8 @@ public class BattleScreen extends Screen {
         wave = 1;
         frameCount = 0;
 
+        invincible = false;
+        speedLevel = 0;
 
         //Initialize HUD
         hud = new HUD(gameProps);
@@ -42,7 +48,6 @@ public class BattleScreen extends Screen {
 
         //update player state
         updatePlayer(input);
-
         //update enemies states
         updateEnemies();
         //update projectiles states
@@ -64,7 +69,7 @@ public class BattleScreen extends Screen {
 
 
     private void updatePlayer(Input input) {
-        if (player.update(input)) {
+        if (player.update(input, computeTimescale())) {
 
             //Create projectile
             Projectile projectile = new Projectile(
@@ -77,20 +82,20 @@ public class BattleScreen extends Screen {
 
     private void updateEnemies() {
         for (Enemy enemy : enemies) {
-            enemy.update(frameCount);
+            enemy.update(frameCount, computeTimescale());
         }
 
     }
 
     private void updateProjectiles() {
         for (Projectile projectile : projectiles) {
-            projectile.update();
+            projectile.update(computeTimescale());
         }
     }
 
     private void updateExplosions(){
         for (Explosion explosion: explosions){
-            explosion.update();
+            explosion.update(computeTimescale());
         }
 
     }
@@ -187,7 +192,10 @@ public class BattleScreen extends Screen {
                     enemy.destroy();
 
                     //player lose life
-                    player.loseLife();
+                    //dev mode
+                    if(!invincible){
+                        player.loseLife();
+                    }
 
                     if (player.isDead()){
                         Window.close();
@@ -254,5 +262,28 @@ public class BattleScreen extends Screen {
 
     private void score(int enemyScore){
         score += enemyScore;
+    }
+
+    //dev mode methods
+    public void speedUp(){
+        speedLevel++;
+    }
+
+    public void speedDown(){
+        speedLevel--;
+    }
+
+    public double computeTimescale(){
+        if(speedLevel > 0){
+            return speedLevel + 1;
+        }else if(speedLevel < 0){
+            return 1.0/(double)(-speedLevel + 1);
+        }else{
+             return 1.0;
+        }
+    }
+
+    public void switchToInvincible(){
+        invincible = !invincible;
     }
 }
