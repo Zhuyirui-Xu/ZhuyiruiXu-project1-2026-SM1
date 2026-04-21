@@ -27,7 +27,7 @@ public class Enemy extends GameObject {
 
 
 
-    private boolean hasArrived(int frameCount){
+    public boolean hasArrived(int frameCount){
         return frameCount >= arrivalTime ;
     }
 

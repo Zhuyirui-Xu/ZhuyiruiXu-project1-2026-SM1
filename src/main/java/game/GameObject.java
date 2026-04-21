@@ -1,6 +1,8 @@
 package game;
 
 import bagel.Image;
+import bagel.util.Point;
+import bagel.util.Rectangle;
 
 public abstract class GameObject {
 
@@ -18,5 +20,28 @@ public abstract class GameObject {
 
     public void draw(){
         image.draw(x, y);
+    }
+
+    public Rectangle getBoundingBox(){
+        return image.getBoundingBoxAt(new Point(x, y));
+    }
+
+
+
+    public boolean collideWith(GameObject other){
+        return getBoundingBox().intersects(other.getBoundingBox());
+    }
+
+
+    public boolean isActive() {
+        return active;
+    }
+
+    public void setActive(boolean active) {
+        this.active = active;
+    }
+
+    public void destroy(){
+        active = false;
     }
 }

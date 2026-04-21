@@ -2,6 +2,7 @@ package game;
 
 import bagel.Input;
 import bagel.Image;
+import bagel.Window;
 
 import java.util.ArrayList;
 import java.util.Properties;
@@ -49,7 +50,7 @@ public class BattleScreen extends Screen {
         //update explosions states
 
         //Check collision
-
+        checkCollisions();
         //Remove inactive objects
         removeInactiveObjects();
 
@@ -162,9 +163,52 @@ public class BattleScreen extends Screen {
             enemies.add(enemy);
             i++;
         }
+    }
 
 
+    private void checkCollisions() {
+        checkEnemyPlayerCollision();
+        checkEnemyProjectileCollision();
+    }
 
+    private void checkEnemyPlayerCollision(){
+        for (Enemy enemy: enemies) {
+
+            if(enemy.isActive() && enemy.hasArrived(frameCount)) {
+                if (enemy.collideWith(player)) {
+
+                    //enemy destroyed
+                    enemy.destroy();
+
+                    //player lose life
+                    player.loseLife();
+
+                    if (player.isDead()){
+                        Window.close();
+                    }
+                }
+            }
+        }
+    }
+
+    private void checkEnemyProjectileCollision(){
+        for (Enemy enemy: enemies) {
+
+            if(enemy.isActive() && enemy.hasArrived(frameCount)) {
+                for(Projectile projectile: projectiles) {
+                    if(projectile.isActive()) {
+                        if (enemy.collideWith(projectile)) {
+                            //enemy destroyed
+                            enemy.destroy();
+                            //projectile destroyed
+                            projectile.destroy();
+                            //score
+                            score(1);
+                        }
+                    }
+                }
+            }
+        }
     }
 
 
@@ -172,7 +216,7 @@ public class BattleScreen extends Screen {
 
         //remove inactive enemies
         for (int i = 0; i<enemies.size(); i++) {//consider getter method
-            if (!enemies.get(i).active) {
+            if (!enemies.get(i).isActive()) {
                 enemies.remove(i);
                 i--;
             }
@@ -181,12 +225,14 @@ public class BattleScreen extends Screen {
 
         //remove inactive projectiles
         for (int i = 0; i<projectiles.size(); i++) {//consider getter method
-            if (!projectiles.get(i).active){
+            if (!projectiles.get(i).isActive()){
                 projectiles.remove(i);
                 i--;
             }
         }
+    }
 
-
+    private void score(int enemyScore){
+        score += enemyScore;
     }
 }

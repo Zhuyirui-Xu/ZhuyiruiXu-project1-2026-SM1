@@ -88,4 +88,12 @@ public class Player extends GameObject {
             cooldownTimer--;
     }
 
+    public void loseLife(){
+        lives--;
+    }
+
+    public boolean isDead(){
+        return lives == 0;
+    }
+
 }
