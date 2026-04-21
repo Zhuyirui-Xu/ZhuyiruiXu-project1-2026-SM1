@@ -11,14 +11,21 @@ public class Player extends GameObject {
     private int speed;
     private int shootCooldown;
     private int cooldownTimer;
+    private boolean shoot;
 
-    public Player(Image image, double x, double y, int lives, int speed) {
+    public Player(Image image, double x, double y, int lives, int speed, int shootCooldown) {
         super(image, x, y);
         this.lives = lives;
         this.speed = speed;
+        this.shootCooldown = shootCooldown;
+        cooldownTimer = 0;
+        shoot =  false;
     }
 
-        public void update(Input input) {
+        public boolean update(Input input) {
+
+            //Shoot flag
+            shoot = false;
 
             //Update movements
             boolean left = input.wasPressed(Keys.A) || input.isDown(Keys.A);//can make input a class static method
@@ -32,6 +39,19 @@ public class Player extends GameObject {
                 //move right
                 moveRight();
             }
+
+            //Update shooting
+            if (input.wasPressed(Keys.SPACE) || input.isDown(Keys.SPACE)) {
+                if (canShoot()){
+                    shoot();
+                }
+            }
+
+            //Update cooldown
+            updateCooldown();
+
+            return shoot;
+
         }
 
     private void moveLeft() {
@@ -53,4 +73,19 @@ public class Player extends GameObject {
     public int getLives() {
         return lives;
     }
+
+    private boolean canShoot(){
+        return cooldownTimer == 0;
+    }
+
+    private void shoot(){
+        shoot = true;
+        cooldownTimer = shootCooldown;
+    }
+
+    private void updateCooldown(){
+        if (cooldownTimer > 0)
+            cooldownTimer--;
+    }
+
 }
