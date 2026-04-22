@@ -56,13 +56,10 @@ public class PauseScreen extends Screen {
         String[] speedPos = gameProps.getProperty("timescale.pos").split(",");
         speedX = Double.parseDouble(speedPos[0]);
         speedY = Double.parseDouble(speedPos[1]);
-
-
     }
 
     @Override
     public void update(Input input) {
-
         draw();
     }
 
@@ -88,6 +85,8 @@ public class PauseScreen extends Screen {
         }
 
         //timescale
-        textFont.drawString(speedPrefix + "1", speedX, speedY);
+        double timeScale = battleScreen.computeTimescale();
+        String speedText = String.format("%s%.1f", speedPrefix, timeScale);
+        textFont.drawString(speedText, speedX, speedY);
     }
 }
