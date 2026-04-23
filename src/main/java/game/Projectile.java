@@ -3,7 +3,6 @@ package game;
 import bagel.Image;
 
 public class Projectile extends GameObject{
-
     private double speed;
 
     public Projectile(Image image, double x, double y, double speed) {
@@ -11,9 +10,11 @@ public class Projectile extends GameObject{
         this.speed = speed;
     }
 
-    public void update( double timeScale) {
+    public void update(double timeScale) {
+        // Fly upwards
         y -= speed * timeScale;
 
+        // Remove when out of screen
         if(y < 0 - image.getHeight()/2) {
             destroy();
         }

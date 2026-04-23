@@ -3,90 +3,80 @@ package game;
 import bagel.Font;
 import bagel.Input;
 import bagel.util.Colour;
-
+import bagel.DrawOptions;
 import java.util.Properties;
 
-public class PauseScreen extends Screen {
-
+public class PauseScreen extends GameState {
+    // Show game background while paused
     private BattleScreen battleScreen;
-    private HUD hud;
 
-    private int textSize;
-    private Font textFont;
-    private Colour textColour;
+    private Font font;
+    private Font titleFont;
+    private Colour colour;
 
     private String pauseTitle;
     private double titleY;
-    private int titleFontSize;
 
-    private String[] controlList;
-    private double controlsStartY;
-    private double controlsLineGap;
+    private String[] controls;
+    private double startY, gap;
 
-    private String speedPrefix;
-    private double speedX;
-    private double speedY;
-
+    private String scaleText;
+    private double scaleX, scaleY;
 
     public PauseScreen(Properties gameProps, BattleScreen battleScreen) {
         super(gameProps);
         this.battleScreen = battleScreen;
-        this.hud = new HUD(gameProps);
 
-        //Initialize attributes for UI drawing: refer to HUD
-        //Pause screen settings
-        textSize = Integer.parseInt(gameProps.getProperty("text.size"));
-        textFont = new Font(gameProps.getProperty("text.font"), textSize);
+        int textSize = Integer.parseInt(gameProps.getProperty("text.size"));
+        int titleSize = Integer.parseInt(gameProps.getProperty("pausedTitle.size"));
 
-        String[] colorParts = gameProps.getProperty("text.colour").split(",");
-        double r = Double.parseDouble(colorParts[0]);
-        double g = Double.parseDouble(colorParts[1]);
-        double b = Double.parseDouble(colorParts[2]);
-        textColour = new Colour(r, g, b);
+        font = new Font(gameProps.getProperty("text.font"), textSize);
+        titleFont = new Font(gameProps.getProperty("text.font"), titleSize);
+
+        // Use same colour for all text
+        String[] rgb = gameProps.getProperty("text.colour").split(",");
+        colour = new Colour(Double.parseDouble(rgb[0]),
+                Double.parseDouble(rgb[1]),
+                Double.parseDouble(rgb[2]));
 
         pauseTitle = gameProps.getProperty("pausedTitle.text");
         titleY = Double.parseDouble(gameProps.getProperty("pausedTitle.posY"));
-        titleFontSize = (int) Double.parseDouble(gameProps.getProperty("pausedTitle.size"));
 
-        controlList = gameProps.getProperty("controlsList.text").split(",");
-        controlsStartY = Double.parseDouble(gameProps.getProperty("controlsList.startPosY"));
-        controlsLineGap = Double.parseDouble(gameProps.getProperty("controlsList.rowGap"));
+        // Load control tips
+        controls = gameProps.getProperty("controlsList.text").split(",");
+        startY = Double.parseDouble(gameProps.getProperty("controlsList.startPosY"));
+        gap = Double.parseDouble(gameProps.getProperty("controlsList.rowGap"));
 
-        speedPrefix = gameProps.getProperty("timescale.text");
-        String[] speedPos = gameProps.getProperty("timescale.pos").split(",");
-        speedX = Double.parseDouble(speedPos[0]);
-        speedY = Double.parseDouble(speedPos[1]);
+        scaleText = gameProps.getProperty("timescale.text");
+        String[] pos = gameProps.getProperty("timescale.pos").split(",");
+        scaleX = Double.parseDouble(pos[0]);
+        scaleY = Double.parseDouble(pos[1]);
     }
 
     @Override
     public void update(Input input) {
+
         draw();
     }
 
     @Override
     public void draw() {
+        // Draw game behind pause menu
         battleScreen.draw();
-        drawInformation();
-    }
 
-    private void drawInformation(){
-        //title:centred text -> calculate correct x position
-        //screenWidth/2 - font.getWidth()/2
-        Font titleFont = new Font(gameProps.getProperty("text.font"), titleFontSize);
-        double titleX = ShadowAliens.screenWidth / 2.0 - titleFont.getWidth(pauseTitle) / 2.0;
-        titleFont.drawString(pauseTitle, titleX, titleY);
+        // Center title on screen
+        double titleX = ShadowAliens.screenWidth / 2 - titleFont.getWidth(pauseTitle)/2;
+        titleFont.drawString(pauseTitle, titleX, titleY, new DrawOptions().setBlendColour(colour));
 
-        //control list;centred text
-        for (int i = 0; i < controlList.length; i++) {
-            String text = controlList[i].trim();
-            double textX = ShadowAliens.screenWidth / 2.0 - textFont.getWidth(text) / 2.0;
-            double textY = controlsStartY + i * controlsLineGap;
-            textFont.drawString(text, textX, textY);
+        // Draw control tips
+        for (int i = 0; i < controls.length; i++) {
+            String t = controls[i].trim();
+            double x = ShadowAliens.screenWidth / 2 - font.getWidth(t)/2;
+            font.drawString(t, x, startY + i * gap, new DrawOptions().setBlendColour(colour));
         }
 
-        //timescale
-        double timeScale = battleScreen.computeTimescale();
-        String speedText = String.format("%s%.1f", speedPrefix, timeScale);
-        textFont.drawString(speedText, speedX, speedY);
+        // Show current speed scale
+        font.drawString(scaleText + " " + String.format("%.1f", battleScreen.computeTimeScale()),
+                scaleX, scaleY, new DrawOptions().setBlendColour(colour));
     }
 }

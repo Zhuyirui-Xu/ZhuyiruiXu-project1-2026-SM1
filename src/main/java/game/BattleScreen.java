@@ -3,287 +3,198 @@ package game;
 import bagel.Input;
 import bagel.Image;
 import bagel.Window;
-
 import java.util.ArrayList;
 import java.util.Properties;
 
-public class BattleScreen extends Screen {
-
+public class BattleScreen extends GameState {
     private Player player;
-    private ArrayList<Enemy> enemies;
-    private ArrayList<Projectile> projectiles;
-    private ArrayList<Explosion> explosions;
-    //battle screen status
-    private int score;
-    private int wave;
-    private int frameCount;
+    private ArrayList<Enemy> enemyList;
+    private ArrayList<Projectile> projectileList;
+    private ArrayList<Explosion> explosionList;
 
-    //status for DEV mode
-    private boolean invincible;
+    private int score;
+    private int waveNumber;
+    private int frameCounter;
+
+    private boolean isInvincible;
     private int speedLevel;
 
-    //UI settings
-    private HUD hud;//delegation
+    private UserInterface userInterface;
+
+    // Preload images so we don't load them every frame
+    private Image projectileImage;
+    private double projectileSpeed;
+
+    private Image explosionImage;
+    private int explosionDuration;
+
+    private Image enemyImage;
 
     public BattleScreen(Properties gameProps) {
         super(gameProps);
 
-        //Initialize battle screen objects
+        cacheResources();
         initializeGameObjects();
 
-        //initialize battle screen states
         score = 0;
-        wave = 1;
-        frameCount = 0;
-
-        invincible = false;
+        waveNumber = 1;
+        frameCounter = 0;
+        isInvincible = false;
         speedLevel = 0;
 
-        //Initialize HUD
-        hud = new HUD(gameProps);
+        userInterface = new UserInterface(gameProps);
+    }
+
+    // Load all images once at start
+    private void cacheResources() {
+        projectileImage = new Image(gameProps.getProperty("projectile.image"));
+        projectileSpeed = Double.parseDouble(gameProps.getProperty("projectile.movementSpeed"));
+
+        explosionImage = new Image(gameProps.getProperty("explosion.image"));
+        explosionDuration = Integer.parseInt(gameProps.getProperty("explosion.duration"));
+
+        enemyImage = new Image(gameProps.getProperty("enemy.image"));
     }
 
     @Override
     public void update(Input input) {
-
-        //update player state
+        // Update everything in logical order
         updatePlayer(input);
-        //update enemies states
         updateEnemies();
-        //update projectiles states
         updateProjectiles();
-        //update explosions states
         updateExplosions();
-        //Check collision
-        checkCollisions();
-        //Remove inactive objects
+
+        checkAllCollisions();
         removeInactiveObjects();
 
-
-        //draw battle screen after everything is updated
         draw();
-
-        //Update frameCount
-        frameCount++;
+        frameCounter++;
     }
 
-
+    // Player movement + shooting
     private void updatePlayer(Input input) {
-        if (player.update(input, computeTimescale())) {
-
-            //Create projectile
-            Projectile projectile = new Projectile(
-                    new Image(gameProps.getProperty("projectile.image")),
-                    player.x, player.y,
-                    Double.parseDouble(gameProps.getProperty("projectile.movementSpeed")));//flaws that can be optimized here
-            projectiles.add(projectile);
+        boolean shooting = player.update(input, computeTimeScale());
+        if (shooting) {
+            projectileList.add(new Projectile(projectileImage, player.getX(), player.getY(), projectileSpeed));
         }
     }
 
     private void updateEnemies() {
-        for (Enemy enemy : enemies) {
-            enemy.update(frameCount, computeTimescale());
+        for (Enemy e : enemyList) {
+            e.update(frameCounter, computeTimeScale());
         }
-
     }
 
     private void updateProjectiles() {
-        for (Projectile projectile : projectiles) {
-            projectile.update(computeTimescale());
+        for (Projectile p : projectileList) {
+            p.update(computeTimeScale());
         }
     }
 
-    private void updateExplosions(){
-        for (Explosion explosion: explosions){
-            explosion.update(computeTimescale());
+    private void updateExplosions() {
+        for (Explosion e : explosionList) {
+            e.update(computeTimeScale());
         }
-
     }
 
     @Override
     public void draw() {
-
-        // draw explosions
-        for (Explosion explosion:explosions){
-            explosion.draw();
-        }
-        //draw player
         player.draw();
 
-        //draw enemies
-       for (Enemy enemy: enemies) {
-           enemy.draw();
-       }
+        for (Enemy e : enemyList) e.draw();
+        for (Projectile p : projectileList) p.draw();
+        // Explosions on top so they look visible
+        for (Explosion e : explosionList) e.draw();
 
-        //draw projectiles
-        for (Projectile projectile : projectiles) {
-            projectile.draw();
-        }
-
-
-        //draw hud information
-        hud.draw(player.getLives(), score, wave);
-
+        userInterface.draw(player.getLives(), score, waveNumber);
     }
 
     private void initializeGameObjects() {
-
-        //initialize player
         createPlayer();
-
-        //initialize enemies
         createEnemies();
-
-        //initialize empty lists for projectiles and explosions
-        projectiles = new ArrayList<>();
-        explosions = new ArrayList<>();
-
+        projectileList = new ArrayList<>();
+        explosionList = new ArrayList<>();
     }
 
-    private void createPlayer(){
-        //initialize player
-        Image image = new Image(gameProps.getProperty("player.image"));
-        double x = ShadowAliens.screenWidth/2;
+    private void createPlayer() {
+        Image img = new Image(gameProps.getProperty("player.image"));
+        double x = ShadowAliens.screenWidth / 2;
         double y = Double.parseDouble(gameProps.getProperty("player.posY"));
-        int initialLives = Integer.parseInt(gameProps.getProperty("player.initialLives"));
+        int lives = Integer.parseInt(gameProps.getProperty("player.initialLives"));
         int speed = Integer.parseInt(gameProps.getProperty("player.speed"));
-        int shootCooldown = Integer.parseInt(gameProps.getProperty("player.shootCooldown"));
-        player = new Player(image, x, y, initialLives, speed, shootCooldown);
+        int cooldown = Integer.parseInt(gameProps.getProperty("player.shootCooldown"));
+        player = new Player(img, x, y, lives, speed, cooldown);
     }
 
-
+    // Automatically load all enemies from config
     private void createEnemies() {
-
-        enemies = new ArrayList<>();
-        Image enemyImage = new Image(gameProps.getProperty("enemy.image"));
-
-        String arrivalTimeStr = null;
-        int arrivalTime;
-        int speed;
-        double posX;
-        double posY = 0 - enemyImage.getHeight()/2;;
+        enemyList = new ArrayList<>();
+        double startY = -enemyImage.getHeight() / 2;
 
         int i = 0;
-        while ((arrivalTimeStr = gameProps.getProperty(String.format("enemy.%d.arrivalTime", i))) != null) {
-
-            arrivalTime = Integer.parseInt(arrivalTimeStr);
-            speed = Integer.parseInt(gameProps.getProperty(String.format("enemy.%d.movementSpeed", i)));
-            posX = Double.parseDouble(gameProps.getProperty(String.format("enemy.%d.posX", i)));
-
-            Enemy enemy = new Enemy(enemyImage, posX, posY, arrivalTime, speed);
-            enemies.add(enemy);
+        while (gameProps.getProperty("enemy." + i + ".arrivalTime") != null) {
+            int arrival = Integer.parseInt(gameProps.getProperty("enemy." + i + ".arrivalTime"));
+            int speed = Integer.parseInt(gameProps.getProperty("enemy." + i + ".movementSpeed"));
+            double x = Double.parseDouble(gameProps.getProperty("enemy." + i + ".posX"));
+            enemyList.add(new Enemy(enemyImage, x, startY, arrival, speed));
             i++;
         }
     }
 
-
-    private void checkCollisions() {
-        checkEnemyPlayerCollision();
-        checkEnemyProjectileCollision();
+    private void checkAllCollisions() {
+        checkPlayerEnemy();
+        checkProjectileEnemy();
     }
 
-    private void checkEnemyPlayerCollision(){
-        for (Enemy enemy: enemies) {
+    // If enemy hits player
+    private void checkPlayerEnemy() {
+        for (Enemy e : enemyList) {
+            if (e.isActive() && e.hasArrived(frameCounter) && e.collideWith(player)) {
+                e.destroy();
 
-            if(enemy.isActive() && enemy.hasArrived(frameCount)) {
-                if (enemy.collideWith(player)) {
+                if (!isInvincible) {
+                    player.loseLife();
+                }
 
-                    //enemy destroyed
-                    enemy.destroy();
-
-                    //player lose life
-                    //dev mode
-                    if(!invincible){
-                        player.loseLife();
-                    }
-
-                    if (player.isDead()){
-                        Window.close();
-                    }
+                if (player.isDead()) {
+                    Window.close();
                 }
             }
         }
     }
 
-    private void checkEnemyProjectileCollision(){
-        for (Enemy enemy: enemies) {
+    // If bullet hits enemy
+    private void checkProjectileEnemy() {
+        for (Enemy e : enemyList) {
+            if (!e.isActive() || !e.hasArrived(frameCounter)) continue;
 
-            if(enemy.isActive() && enemy.hasArrived(frameCount)) {
-                for(Projectile projectile: projectiles) {
-                    if(projectile.isActive()) {
-                        if (enemy.collideWith(projectile)) {
-                            //enemy destroyed
-                            enemy.destroy();
-                            //projectile destroyed
-                            projectile.destroy();
-                            //score
-                            score(1);
-                            //create explosion
-                            Explosion explosion = new Explosion(new Image(gameProps.getProperty("explosion.image")),
-                                    enemy.x,
-                                    enemy.y,
-                                    Integer.parseInt(gameProps.getProperty("explosion.duration")));
-                            explosions.add(explosion);
-                        }
-                    }
+            for (Projectile p : projectileList) {
+                if (p.isActive() && e.collideWith(p)) {
+                    e.destroy();
+                    p.destroy();
+                    score++;
+                    explosionList.add(new Explosion(explosionImage, e.getX(), e.getY(), explosionDuration));
+                    break;
                 }
             }
         }
     }
 
-
+    // Clean up objects that are no longer used
     private void removeInactiveObjects() {
-
-        //remove inactive enemies
-        for (int i = 0; i<enemies.size(); i++) {//consider getter method
-            if (!enemies.get(i).isActive()) {
-                enemies.remove(i);
-                i--;
-            }
-        }
-
-
-        //remove inactive projectiles
-        for (int i = 0; i<projectiles.size(); i++) {//consider getter method
-            if (!projectiles.get(i).isActive()){
-                projectiles.remove(i);
-                i--;
-            }
-        }
-
-        //remove inactive explosions
-        for (int i = 0; i<explosions.size(); i++) {//consider getter method
-            if (!explosions.get(i).isActive()){
-                explosions.remove(i);
-                i--;
-            }
-        }
+        enemyList.removeIf(e -> !e.isActive());
+        projectileList.removeIf(p -> !p.isActive());
+        explosionList.removeIf(e -> !e.isActive());
     }
 
-    private void score(int enemyScore){
-        score += enemyScore;
+    // Calculate game speed based on level
+    public double computeTimeScale() {
+        if (speedLevel > 0) return speedLevel + 1;
+        if (speedLevel < 0) return 1.0 / (-speedLevel + 1);
+        return 1.0;
     }
 
-    //dev mode methods
-    public void speedUp(){
-        speedLevel++;
-    }
-
-    public void speedDown(){
-        speedLevel--;
-    }
-
-    public double computeTimescale(){
-        if(speedLevel > 0){
-            return speedLevel + 1;
-        }else if(speedLevel < 0){
-            return 1.0/(double)(-speedLevel + 1);
-        }else{
-             return 1.0;
-        }
-    }
-
-    public void switchToInvincible(){
-        invincible = !invincible;
-    }
+    public void increaseSpeedLevel() { speedLevel++; }
+    public void decreaseSpeedLevel() { speedLevel--; }
+    public void toggleInvincibleMode() { isInvincible = !isInvincible; }
 }

@@ -1,15 +1,12 @@
 package game;
-
 import bagel.Input;
-
-import java.awt.*;
 import java.util.Properties;
 
-public abstract class Screen {
-    //Design choice here:Protected only read no change
+// All screens must have update and draw
+public abstract class GameState {
     protected Properties gameProps;
 
-    public Screen(Properties gameProps) {
+    public GameState(Properties gameProps) {
         this.gameProps = gameProps;
     }
 
