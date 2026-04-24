@@ -6,7 +6,10 @@ import bagel.Window;
 import java.util.ArrayList;
 import java.util.Properties;
 
-public class BattleScreen extends GameState {
+/**
+ * Main gameplay screen where player movement, shooting, collisions, and scoring occur.
+ */
+public class BattleScreen extends ScreenState {
     private Player player;
     private ArrayList<Enemy> enemyList;
     private ArrayList<Projectile> projectileList;
@@ -21,7 +24,7 @@ public class BattleScreen extends GameState {
 
     private UserInterface userInterface;
 
-    // Preload images so we don't load them every frame
+
     private Image projectileImage;
     private double projectileSpeed;
 
@@ -45,7 +48,7 @@ public class BattleScreen extends GameState {
         userInterface = new UserInterface(gameProps);
     }
 
-    // Load all images once at start
+    // Load images once at start to avoid repeated I/O operations
     private void cacheResources() {
         projectileImage = new Image(gameProps.getProperty("projectile.image"));
         projectileSpeed = Double.parseDouble(gameProps.getProperty("projectile.movementSpeed"));
@@ -58,9 +61,10 @@ public class BattleScreen extends GameState {
 
     @Override
     public void update(Input input) {
-        // Update everything in logical order
+
         updatePlayer(input);
         updateEnemies();
+
         updateProjectiles();
         updateExplosions();
 
@@ -71,7 +75,7 @@ public class BattleScreen extends GameState {
         frameCounter++;
     }
 
-    // Player movement + shooting
+
     private void updatePlayer(Input input) {
         boolean shooting = player.update(input, computeTimeScale());
         if (shooting) {
@@ -103,7 +107,7 @@ public class BattleScreen extends GameState {
 
         for (Enemy e : enemyList) e.draw();
         for (Projectile p : projectileList) p.draw();
-        // Explosions on top so they look visible
+
         for (Explosion e : explosionList) e.draw();
 
         userInterface.draw(player.getLives(), score, waveNumber);
@@ -126,18 +130,24 @@ public class BattleScreen extends GameState {
         player = new Player(img, x, y, lives, speed, cooldown);
     }
 
-    // Automatically load all enemies from config
+    // Load enemies dynamically until no more configuration entries are found
     private void createEnemies() {
         enemyList = new ArrayList<>();
+
         double startY = -enemyImage.getHeight() / 2;
 
-        int i = 0;
-        while (gameProps.getProperty("enemy." + i + ".arrivalTime") != null) {
-            int arrival = Integer.parseInt(gameProps.getProperty("enemy." + i + ".arrivalTime"));
+        for (int i = 0; ; i++) {
+
+            String key = "enemy." + i + ".arrivalTime";
+            String arrivalStr = gameProps.getProperty(key);
+
+            if (arrivalStr == null) break;
+
+            int arrival = Integer.parseInt(arrivalStr);
             int speed = Integer.parseInt(gameProps.getProperty("enemy." + i + ".movementSpeed"));
             double x = Double.parseDouble(gameProps.getProperty("enemy." + i + ".posX"));
+
             enemyList.add(new Enemy(enemyImage, x, startY, arrival, speed));
-            i++;
         }
     }
 
@@ -146,7 +156,7 @@ public class BattleScreen extends GameState {
         checkProjectileEnemy();
     }
 
-    // If enemy hits player
+
     private void checkPlayerEnemy() {
         for (Enemy e : enemyList) {
             if (e.isActive() && e.hasArrived(frameCounter) && e.collideWith(player)) {
@@ -163,7 +173,7 @@ public class BattleScreen extends GameState {
         }
     }
 
-    // If bullet hits enemy
+
     private void checkProjectileEnemy() {
         for (Enemy e : enemyList) {
             if (!e.isActive() || !e.hasArrived(frameCounter)) continue;
@@ -180,14 +190,14 @@ public class BattleScreen extends GameState {
         }
     }
 
-    // Clean up objects that are no longer used
+
     private void removeInactiveObjects() {
         enemyList.removeIf(e -> !e.isActive());
         projectileList.removeIf(p -> !p.isActive());
         explosionList.removeIf(e -> !e.isActive());
     }
 
-    // Calculate game speed based on level
+
     public double computeTimeScale() {
         if (speedLevel > 0) return speedLevel + 1;
         if (speedLevel < 0) return 1.0 / (-speedLevel + 1);

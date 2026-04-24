@@ -2,6 +2,9 @@ package game;
 
 import bagel.Image;
 
+/**
+ * Enemy unit that spawns at a specific frame and moves vertically down the screen.
+ */
 public class Enemy extends GameObject {
     private int arrivalTime;
     private int speed;
@@ -13,14 +16,14 @@ public class Enemy extends GameObject {
     }
 
     public void update(int frameCount, double timeScale){
-        // Don't move until spawn time
+        // Only start moving once the specified spawn frame is reached
         if(!hasArrived(frameCount)){
             return;
         }
 
         y += speed * timeScale;
 
-        // Remove when completely off-screen
+        // Remove object once it has fully left the bottom of the screen
         if(y >= ShadowAliens.screenHeight + image.getHeight()/2) {
             destroy();
         }

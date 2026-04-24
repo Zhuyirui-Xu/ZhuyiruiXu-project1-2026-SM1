@@ -19,7 +19,7 @@ public class IOUtils {
             appProps.load(new FileInputStream(configFile));
         } catch(IOException ex) {
             System.err.println("Error with " + configFile);
-//            ex.printStackTrace();
+            ex.printStackTrace();
             System.exit(-1);
         }
 

@@ -3,43 +3,32 @@
 # Shadow Aliens
 
 ## Running Instructions
-IntelliJ Run Configuration:
-- Main class: game.ShadowAliens
-- Working directory: project root folder (where gameData.properties is located)
-- Use classpath of your project module
-
-Command line (Java 25):
-Compile:
-javac game/*.java
-
-Run:
-java game.ShadowAliens
+#### -IntelliJ Run Configuration
+* **Main class:** game.ShadowAliens
+* **Working directory:** Set to the root folder of the project which containing the gameData.properties file.
+* **Classpath:** Use the classpath of your project’s main module
+#### -Command Line (Java 25)
+* **Compile all Java files:** javac -d bin game/*.java
+* **Run the game:** java -cp bin game.ShadowAliens
 
 ## Assumptions
-
 * None
 
 ## AI Statement
-I have not used any generative AI tools for code implementations
+I have not used any generative AI tools or technologies for this assignment.
+
 ## Code References
-* No code was copied from Stack Overflow, GitHub, or other external sources
+* No code was copied from Stack Overflow, GitHub, or other external sources.
+* Comments and code formatting follow the Google Java style guide: https://google.github.io/styleguide/javaguide.html
 
 ## Design Report
 
 ### OOP
-1.Inheritance
-File: game/GameObject.java and all entity classes (Player, Enemy, etc.)
-Player, Enemy, Projectile, and Explosion all inherit from GameObject. This lets them reuse drawing, collision, and destroy logic instead of repeating code.
-2.Advanced: Polymorphism
-File: game/GameState.java, BattleScreen.java, PauseScreen.java
-BattleScreen and PauseScreen both follow the GameState interface. The main game can call update() and draw() without knowing which screen is active, making the code clean and flexible.
+#### 1.Inheritance
+* File: game/ScreenState.java (lines 8-18) and game/BattleScreen.java (lines 8-210)BattleScreen and PauseScreen inherit from the abstract base class ScreenState. This reuse the gameProps field and enforces implementation of update() and draw() methods, avoiding redundant property initialization code across screen classes.
+#### 2.Advanced: Polymorphism
+* File: game/ShadowAliens.java (lines 47-50, 58-64) currentScreenState uses polymorphism by referencing ScreenState, but holding either BattleScreen or PauseScreen. At runtime, update(input) is dynamically dispatched to the correct overridden method, allowing different behaviours without changing the call site.
 ### Design choice
-The most important design choice I made combines using the protected access modifier and applying delegation to keep the code clean and organised.
-I used protected for core fields in GameObject and GameState so subclasses can safely access position and game properties without excessive getters, while still keeping them encapsulated.
-I also used delegation heavily by letting dedicated classes handle specific jobs: UserInterface handles all HUD rendering, BattleScreen manages gameplay, and each entity runs its own update logic. This means no single class becomes too big or hard to maintain.
-The alternative would be putting all logic in one main class or using only private fields with large numbers of getters. This would make code longer, harder to debug, and messy to extend.
-Combining protected for safe inheritance and delegation for clear responsibility separation makes the code simpler, more maintainable, and more aligned with proper object-oriented design. This structure also makes it easy to extend the game later for Project 2.
-
+The main design choice in this project is using delegation together with a simple inheritance structure to keep the code organised. Instead of putting everything into one large class, different components handle their own responsibilities: BattleScreen manages gameplay, UserInterface draws UI settings, and each game object updates itself. This makes the code easier to read and modify. I also used protected fields so subclasses can access shared data without needing many getters. An alternative would be putting all logic in a single class or using only private fields with heavy getter usage, but that would make the code more complex and harder to maintain. Overall, this design keeps the structure clear and easier to extend.
 ## Design Report References
-
 * None

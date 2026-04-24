@@ -6,15 +6,18 @@ import bagel.Keys;
 import bagel.Window;
 import java.util.Properties;
 
+/**
+ * Main game class that manages initialising the screens and game objects
+ */
 public class ShadowAliens extends AbstractGame {
-    // Global game settings shared across all classes
+
     private static Properties gameProps;
     public static double screenWidth;
     public static double screenHeight;
 
     private BattleScreen battleScreen;
     private PauseScreen pauseScreen;
-    private GameState currentGameState;
+    private ScreenState currentScreenState;
 
     public ShadowAliens(Properties gameProps) {
         super(Integer.parseInt(gameProps.getProperty("window.width")),
@@ -25,16 +28,16 @@ public class ShadowAliens extends AbstractGame {
         screenWidth = Integer.parseInt(gameProps.getProperty("window.width"));
         screenHeight = Integer.parseInt(gameProps.getProperty("window.height"));
 
-        // Create both screens once to avoid reloading
+        // Initialise both states upfront to avoid repeated object creation during play
         battleScreen = new BattleScreen(gameProps);
         pauseScreen = new PauseScreen(gameProps, battleScreen);
-        currentGameState = battleScreen;
+        currentScreenState = battleScreen;
 
         setBackgroundColor();
     }
 
     private void setBackgroundColor() {
-        // Read RGB values from config
+        //values are stored as comma-separated strings in properties
         String[] backgroundColors = gameProps.getProperty("background.colour").split(",");
         double r = Double.parseDouble(backgroundColors[0]);
         double g = Double.parseDouble(backgroundColors[1]);
@@ -42,6 +45,10 @@ public class ShadowAliens extends AbstractGame {
         Window.setClearColour(r, g, b);
     }
 
+    /**
+     * Run and render the next frame.
+     * @param input The current mouse/keyboard input.
+     */
     @Override
     protected void update(Input input) {
 
@@ -49,21 +56,20 @@ public class ShadowAliens extends AbstractGame {
             switchGameState();
         }
 
-        currentGameState.update(input);
+        currentScreenState.update(input);
         handleDevModeInput(input);
     }
 
 
     private void switchGameState() {
-        boolean isBattle = currentGameState instanceof BattleScreen;
-        if (isBattle) {
-            currentGameState = pauseScreen;
-        } else {
-            currentGameState = battleScreen;
+        if (currentScreenState instanceof BattleScreen) {
+            currentScreenState = pauseScreen;
+        } else if (currentScreenState instanceof PauseScreen) {
+            currentScreenState = battleScreen;
         }
     }
 
-    // All developer shortcuts
+
     private void handleDevModeInput(Input input) {
         if (input.wasPressed(Keys.R)) resetGame();
         if (input.wasPressed(Keys.I)) battleScreen.toggleInvincibleMode();
@@ -75,7 +81,7 @@ public class ShadowAliens extends AbstractGame {
     private void resetGame() {
         battleScreen = new BattleScreen(gameProps);
         pauseScreen = new PauseScreen(gameProps, battleScreen);
-        currentGameState = battleScreen;
+        currentScreenState = battleScreen;
     }
 
     public static void main(String[] args) {

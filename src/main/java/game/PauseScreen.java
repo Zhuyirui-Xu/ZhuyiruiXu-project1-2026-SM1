@@ -6,8 +6,13 @@ import bagel.util.Colour;
 import bagel.DrawOptions;
 import java.util.Properties;
 
-public class PauseScreen extends GameState {
-    // Show game background while paused
+
+/**
+ * Displays game controls and current timescale.
+ * Draws the battle screen as a frozen background.
+ */
+public class PauseScreen extends ScreenState {
+
     private BattleScreen battleScreen;
 
     private Font font;
@@ -33,7 +38,7 @@ public class PauseScreen extends GameState {
         font = new Font(gameProps.getProperty("text.font"), textSize);
         titleFont = new Font(gameProps.getProperty("text.font"), titleSize);
 
-        // Use same colour for all text
+
         String[] rgb = gameProps.getProperty("text.colour").split(",");
         colour = new Colour(Double.parseDouble(rgb[0]),
                 Double.parseDouble(rgb[1]),
@@ -42,7 +47,7 @@ public class PauseScreen extends GameState {
         pauseTitle = gameProps.getProperty("pausedTitle.text");
         titleY = Double.parseDouble(gameProps.getProperty("pausedTitle.posY"));
 
-        // Load control tips
+
         controls = gameProps.getProperty("controlsList.text").split(",");
         startY = Double.parseDouble(gameProps.getProperty("controlsList.startPosY"));
         gap = Double.parseDouble(gameProps.getProperty("controlsList.rowGap"));
@@ -55,27 +60,27 @@ public class PauseScreen extends GameState {
 
     @Override
     public void update(Input input) {
-
+        // No game logic executes while paused; only rendering is required
         draw();
     }
 
     @Override
     public void draw() {
-        // Draw game behind pause menu
+        // Show the game current state behind the pause menu
         battleScreen.draw();
 
-        // Center title on screen
+        // Centre title horizontally
         double titleX = ShadowAliens.screenWidth / 2 - titleFont.getWidth(pauseTitle)/2;
         titleFont.drawString(pauseTitle, titleX, titleY, new DrawOptions().setBlendColour(colour));
 
-        // Draw control tips
+        // Centre each control line and space vertically using the defined gap
         for (int i = 0; i < controls.length; i++) {
             String t = controls[i].trim();
             double x = ShadowAliens.screenWidth / 2 - font.getWidth(t)/2;
             font.drawString(t, x, startY + i * gap, new DrawOptions().setBlendColour(colour));
         }
 
-        // Show current speed scale
+        // Display current game speed
         font.drawString(scaleText + " " + String.format("%.1f", battleScreen.computeTimeScale()),
                 scaleX, scaleY, new DrawOptions().setBlendColour(colour));
     }

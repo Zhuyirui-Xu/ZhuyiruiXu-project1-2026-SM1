@@ -4,6 +4,9 @@ import bagel.Image;
 import bagel.Input;
 import bagel.Keys;
 
+/**
+ * Player class with movement, shooting, health, and screen boundary constraints.
+ */
 public class Player extends GameObject {
     private int lives;
     private int moveSpeed;
@@ -26,20 +29,20 @@ public class Player extends GameObject {
         boolean left = input.wasPressed(Keys.A) || input.isDown(Keys.A);
         boolean right = input.wasPressed(Keys.D) || input.isDown(Keys.D);
 
-
+        // Prevent player from moving off the left edge of the screen
         if (left && !right) {
             x -= moveSpeed * timeScale;
             if (x < image.getWidth()/2) x = image.getWidth()/2;
         }
 
-
+        // Prevent player from moving off the right edge of the screen
         if (right && !left) {
             x += moveSpeed * timeScale;
             double max = ShadowAliens.screenWidth - image.getWidth()/2;
             if (x > max) x = max;
         }
 
-        // Shoot only if cooldown is done
+        // Only fire if cooldown has finished to prevent rapid firing
         if (input.wasPressed(Keys.SPACE) && cooldownTimer == 0) {
             isShooting = true;
             cooldownTimer = shootCooldown;

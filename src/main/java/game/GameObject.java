@@ -4,7 +4,9 @@ import bagel.Image;
 import bagel.util.Point;
 import bagel.util.Rectangle;
 
-// Base class for all visible game things
+/**
+ * Base class for all renderable game entities with shared position and collision logic.
+ */
 public abstract class GameObject {
     protected final Image image;
     protected double x;
@@ -22,12 +24,12 @@ public abstract class GameObject {
         image.draw(x, y);
     }
 
-    // For collision detection
+    // Provide consistent collision bounds for all game objects
     public Rectangle getBoundingBox(){
         return image.getBoundingBoxAt(new Point(x, y));
     }
 
-    // Check if two objects hit each other
+
     public boolean collideWith(GameObject other){
         return getBoundingBox().intersects(other.getBoundingBox());
     }
@@ -36,7 +38,7 @@ public abstract class GameObject {
         return active;
     }
 
-    // Mark object to be removed
+    // Mark object for removal
     public void destroy(){
         active = false;
     }

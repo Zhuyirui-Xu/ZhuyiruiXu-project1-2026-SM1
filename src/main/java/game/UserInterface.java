@@ -5,6 +5,9 @@ import bagel.Image;
 import bagel.util.Colour;
 import java.util.Properties;
 
+/**
+ * Renders in-game UI elements including lives, score, and wave information.
+ */
 public class UserInterface {
     private int textSize;
     private Font textFont;
@@ -69,6 +72,7 @@ public class UserInterface {
 
     private void drawLives(int lives) {
         for (int i = 0; i < lives; i++) {
+            // Space out life icons horizontally using the defined gap value
             lifeIcon.draw(lifeX + i * lifeGap, lifeY);
         }
     }

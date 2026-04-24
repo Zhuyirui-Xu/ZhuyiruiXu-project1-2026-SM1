@@ -2,6 +2,9 @@ package game;
 
 import bagel.Image;
 
+/**
+ * Projectile fired by the player, moves vertically upwards and self-destructs when off-screen.
+ */
 public class Projectile extends GameObject{
     private double speed;
 
@@ -11,10 +14,10 @@ public class Projectile extends GameObject{
     }
 
     public void update(double timeScale) {
-        // Fly upwards
+        // Projectiles travel upwards along the Y-axis
         y -= speed * timeScale;
 
-        // Remove when out of screen
+        // Remove object once it has fully left the top of the screen
         if(y < 0 - image.getHeight()/2) {
             destroy();
         }

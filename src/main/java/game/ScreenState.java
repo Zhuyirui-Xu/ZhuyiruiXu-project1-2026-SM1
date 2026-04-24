@@ -2,11 +2,13 @@ package game;
 import bagel.Input;
 import java.util.Properties;
 
-// All screens must have update and draw
-public abstract class GameState {
+/**
+ * Base class for different game screens (battle, pause).
+ */
+public abstract class ScreenState {
     protected Properties gameProps;
 
-    public GameState(Properties gameProps) {
+    public ScreenState(Properties gameProps) {
         this.gameProps = gameProps;
     }
 
